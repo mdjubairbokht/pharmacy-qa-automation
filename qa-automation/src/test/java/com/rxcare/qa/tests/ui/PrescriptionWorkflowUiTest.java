@@ -126,10 +126,14 @@ public class PrescriptionWorkflowUiTest extends BaseUiTest {
     public void cancelPrescriptionThroughUi() {
         Prescription rx = PrescriptionWorkflow.created(api(), SeedData.NDC_LISINOPRIL, 30);
 
-        loginAsTechnician().goToPrescriptions()
+        PrescriptionsPage queue = loginAsTechnician().goToPrescriptions()
                 .filterByStatus("NEW")
                 .cancel(rx.rxNumber(), "Patient requested cancellation");
 
+        assertFalse(queue.hasRow(rx.rxNumber()), "cancelled prescription leaves the NEW queue");
+        queue.filterByStatus("CANCELLED");
+        assertEquals(queue.statusOf(rx.rxNumber()), "CANCELLED", "shown under the CANCELLED filter");
+        assertFalse(queue.isActionAvailable(rx.rxNumber(), "cancel"), "no further actions on a cancelled prescription");
         assertEquals(DbClient.queryOne(PharmacyQueries.PRESCRIPTION_BY_ID, rx.id()).get("cancel_reason"),
                 "Patient requested cancellation");
     }

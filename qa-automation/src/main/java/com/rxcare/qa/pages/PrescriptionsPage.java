@@ -112,15 +112,26 @@ public class PrescriptionsPage extends AppPage {
         visible(testId("cancel-dialog"));
         type(testId("cancel-reason"), reason);
         clearToast();
+        markStale(TABLE);
         click(testId("cancel-confirm"));
-        waitForToastContaining(rxNumber + " cancelled");
-        return waitForStatus(rxNumber, "CANCELLED");
+        return afterAction(rxNumber, rxNumber + " cancelled", "CANCELLED");
     }
 
     private PrescriptionsPage simpleAction(String rxNumber, String action, String toastVerb, String newStatus) {
         clearToast();
+        markStale(TABLE);
         click(action(rxNumber, action));
-        waitForToastContaining(rxNumber + " " + toastVerb);
-        return waitForStatus(rxNumber, newStatus);
+        return afterAction(rxNumber, rxNumber + " " + toastVerb, newStatus);
+    }
+
+    /**
+     * Waits for the confirmation toast and the table refresh that follows every action. When a status
+     * filter is active the row may legitimately drop out of the list (e.g. a cancelled prescription
+     * while viewing NEW), so the new status is only checked when the row is still displayed.
+     */
+    private PrescriptionsPage afterAction(String rxNumber, String expectedToast, String newStatus) {
+        waitForToastContaining(expectedToast);
+        waitForReady(TABLE);
+        return hasRow(rxNumber) ? waitForStatus(rxNumber, newStatus) : this;
     }
 }
