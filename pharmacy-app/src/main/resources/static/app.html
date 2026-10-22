@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RxCare Pharmacy</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div class="shell">
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">Rx</div>
+      <div class="brand-name">RxCare Pharmacy</div>
+    </div>
+    <div class="userbox">
+      <span class="who" data-testid="current-user"></span>
+      <span class="role-badge" data-testid="current-role"></span>
+      <button class="btn btn-sm" data-testid="logout-button" id="logout">Sign out</button>
+    </div>
+  </header>
+
+  <nav class="sidenav" aria-label="Main">
+    <a href="#dashboard" data-view="dashboard" data-testid="nav-dashboard">Dashboard</a>
+    <a href="#patients" data-view="patients" data-testid="nav-patients">Patients</a>
+    <a href="#prescriptions" data-view="prescriptions" data-testid="nav-prescriptions">Prescriptions</a>
+    <a href="#inventory" data-view="inventory" data-testid="nav-inventory">Inventory</a>
+  </nav>
+
+  <main>
+    <!-- ================= DASHBOARD ================= -->
+    <section id="view-dashboard" data-testid="view-dashboard" class="hidden">
+      <div class="view-head"><h2>Dashboard</h2></div>
+      <div class="stats">
+        <div class="stat" data-testid="stat-NEW"><div class="label">New</div><div class="value">-</div></div>
+        <div class="stat" data-testid="stat-VERIFIED"><div class="label">Verified</div><div class="value">-</div></div>
+        <div class="stat" data-testid="stat-FILLED"><div class="label">Ready for pickup</div><div class="value">-</div></div>
+        <div class="stat" data-testid="stat-PICKED_UP"><div class="label">Picked up</div><div class="value">-</div></div>
+      </div>
+      <h3 class="section-title">Store</h3>
+      <div class="stats">
+        <div class="stat" data-testid="stat-patients"><div class="label">Patients</div><div class="value">-</div></div>
+        <div class="stat" data-testid="stat-low-stock"><div class="label">Low stock items</div><div class="value">-</div></div>
+        <div class="stat" data-testid="stat-sales-today"><div class="label">Sales today (UTC)</div><div class="value">-</div></div>
+      </div>
+    </section>
+
+    <!-- ================= PATIENTS ================= -->
+    <section id="view-patients" data-testid="view-patients" class="hidden">
+      <div class="view-head">
+        <h2>Patients</h2>
+        <div class="toolbar">
+          <input type="search" placeholder="Name or phone" data-testid="patient-search-input" id="patient-search">
+          <button class="btn" data-testid="patient-search-button" id="patient-search-btn">Search</button>
+          <button class="btn btn-primary" data-testid="add-patient-button" id="add-patient">Add patient</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table data-testid="patients-table">
+          <thead><tr><th>Name</th><th>Date of birth</th><th>Phone</th><th>Allergies</th><th>Insurance</th><th></th></tr></thead>
+          <tbody id="patients-body"></tbody>
+        </table>
+        <div class="empty hidden" data-testid="patients-empty">No patients match your search.</div>
+      </div>
+    </section>
+
+    <!-- ================= PRESCRIPTIONS ================= -->
+    <section id="view-prescriptions" data-testid="view-prescriptions" class="hidden">
+      <div class="view-head">
+        <h2>Prescriptions</h2>
+        <div class="toolbar">
+          <select data-testid="rx-status-filter" id="rx-filter" aria-label="Status filter">
+            <option value="">All statuses</option>
+            <option value="NEW">New</option>
+            <option value="VERIFIED">Verified</option>
+            <option value="FILLED">Filled</option>
+            <option value="PICKED_UP">Picked up</option>
+            <option value="CANCELLED">Cancelled</option>
+          </select>
+          <button class="btn btn-primary" data-testid="new-rx-button" id="new-rx">New prescription</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table data-testid="rx-table">
+          <thead><tr><th>Rx #</th><th>Patient</th><th>Drug</th><th class="num">Qty</th><th class="num">Refills left</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="rx-body"></tbody>
+        </table>
+        <div class="empty hidden" data-testid="rx-empty">No prescriptions found.</div>
+      </div>
+    </section>
+
+    <!-- ================= INVENTORY ================= -->
+    <section id="view-inventory" data-testid="view-inventory" class="hidden">
+      <div class="view-head">
+        <h2>Inventory</h2>
+        <label class="toolbar"><input type="checkbox" data-testid="low-stock-only" id="low-only"> Low stock only</label>
+      </div>
+      <div class="table-wrap">
+        <table data-testid="inventory-table">
+          <thead><tr><th>Drug</th><th>NDC</th><th>Class</th><th class="num">Unit price</th><th class="num">On hand</th><th class="num">Reorder at</th><th>Status</th></tr></thead>
+          <tbody id="inventory-body"></tbody>
+        </table>
+      </div>
+      <form class="panel" id="receive-form" data-testid="receive-form" novalidate>
+        <h3>Receive stock</h3>
+        <div class="inline-form">
+          <div class="field"><label for="receive-drug">Drug</label><select id="receive-drug" data-testid="receive-drug"></select></div>
+          <div class="field"><label for="receive-qty">Quantity</label><input id="receive-qty" data-testid="receive-qty" inputmode="numeric"></div>
+          <div class="field"><label for="receive-reason">Reference</label><input id="receive-reason" data-testid="receive-reason" placeholder="PO / invoice #"></div>
+          <button type="submit" class="btn btn-primary" data-testid="receive-submit">Receive</button>
+        </div>
+      </form>
+    </section>
+  </main>
+</div>
+
+<!-- ================= DIALOGS ================= -->
+<dialog data-testid="patient-dialog" id="patient-dialog">
+  <form id="patient-form" novalidate>
+    <div class="dialog-body">
+      <h3 id="patient-dialog-title">Add patient</h3>
+      <div class="alert alert-error hidden" data-testid="patient-form-error"></div>
+      <div class="grid-2">
+        <div class="field"><label for="p-first">First name</label><input id="p-first" data-testid="patient-first-name"></div>
+        <div class="field"><label for="p-last">Last name</label><input id="p-last" data-testid="patient-last-name"></div>
+        <div class="field"><label for="p-dob">Date of birth</label><input id="p-dob" data-testid="patient-dob" placeholder="YYYY-MM-DD"></div>
+        <div class="field"><label for="p-gender">Gender</label>
+          <select id="p-gender" data-testid="patient-gender">
+            <option value="">Select</option><option value="F">Female</option><option value="M">Male</option><option value="U">Unspecified</option>
+          </select>
+        </div>
+        <div class="field"><label for="p-phone">Phone</label><input id="p-phone" data-testid="patient-phone" placeholder="412-555-0100"></div>
+        <div class="field"><label for="p-email">Email</label><input id="p-email" data-testid="patient-email"></div>
+        <div class="field full"><label for="p-address">Address</label><input id="p-address" data-testid="patient-address"></div>
+        <div class="field"><label for="p-insurance">Insurance plan</label><input id="p-insurance" data-testid="patient-insurance"></div>
+        <div class="field"><label for="p-allergies">Allergies (comma separated)</label><input id="p-allergies" data-testid="patient-allergies" placeholder="PENICILLIN, SULFONAMIDE"></div>
+      </div>
+    </div>
+    <div class="dialog-actions">
+      <button type="button" class="btn" data-testid="patient-cancel" id="patient-cancel">Cancel</button>
+      <button type="submit" class="btn btn-primary" data-testid="patient-save">Save patient</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog data-testid="rx-dialog" id="rx-dialog">
+  <form id="rx-form" novalidate>
+    <div class="dialog-body">
+      <h3>New prescription</h3>
+      <div class="alert alert-error hidden" data-testid="rx-form-error"></div>
+      <div class="grid-2">
+        <div class="field full"><label for="rx-patient">Patient</label><select id="rx-patient" data-testid="rx-patient"></select></div>
+        <div class="field full"><label for="rx-drug">Drug</label><select id="rx-drug" data-testid="rx-drug"></select></div>
+        <div class="field"><label for="rx-qty">Quantity</label><input id="rx-qty" data-testid="rx-quantity" inputmode="numeric"></div>
+        <div class="field"><label for="rx-days">Days supply</label><input id="rx-days" data-testid="rx-days-supply" inputmode="numeric"></div>
+        <div class="field"><label for="rx-refills">Refills</label><input id="rx-refills" data-testid="rx-refills" inputmode="numeric" value="0"></div>
+        <div class="field"><label for="rx-prescriber">Prescriber</label><input id="rx-prescriber" data-testid="rx-prescriber"></div>
+        <div class="field full"><label for="rx-sig">Directions (SIG)</label><input id="rx-sig" data-testid="rx-sig"></div>
+      </div>
+    </div>
+    <div class="dialog-actions">
+      <button type="button" class="btn" data-testid="rx-cancel" id="rx-cancel">Cancel</button>
+      <button type="submit" class="btn btn-primary" data-testid="rx-save">Create prescription</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog data-testid="pickup-dialog" id="pickup-dialog">
+  <form id="pickup-form" novalidate>
+    <div class="dialog-body">
+      <h3>Pick up <span id="pickup-rx" class="mono" data-testid="pickup-rx-number"></span></h3>
+      <div>Amount due: <strong data-testid="pickup-amount" id="pickup-amount"></strong></div>
+      <div class="field"><label for="pickup-payment">Payment method</label>
+        <select id="pickup-payment" data-testid="pickup-payment">
+          <option value="INSURANCE">Insurance</option><option value="CARD">Card</option><option value="CASH">Cash</option>
+        </select>
+      </div>
+    </div>
+    <div class="dialog-actions">
+      <button type="button" class="btn" data-testid="pickup-close" id="pickup-close">Close</button>
+      <button type="submit" class="btn btn-primary" data-testid="pickup-confirm">Complete sale</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog data-testid="cancel-dialog" id="cancel-dialog">
+  <form id="cancel-form" novalidate>
+    <div class="dialog-body">
+      <h3>Cancel <span id="cancel-rx" class="mono"></span></h3>
+      <div class="field"><label for="cancel-reason">Reason</label><input id="cancel-reason" data-testid="cancel-reason"></div>
+    </div>
+    <div class="dialog-actions">
+      <button type="button" class="btn" data-testid="cancel-close" id="cancel-close">Back</button>
+      <button type="submit" class="btn btn-danger" data-testid="cancel-confirm">Cancel prescription</button>
+    </div>
+  </form>
+</dialog>
+
+<div class="toast hidden" data-testid="toast" role="status" aria-live="polite"></div>
+<script src="js/app.js"></script>
+</body>
+</html>

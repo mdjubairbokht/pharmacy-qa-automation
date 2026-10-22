@@ -1,0 +1,140 @@
+# Azure DevOps pipeline: build the app, then run the API, DB and UI suites as parallel jobs,
+# each against its own PostgreSQL service container. Results show up under the
+# "Tests" tab; Allure results are published as pipeline artifacts.
+
+trigger:
+  branches:
+    include: [main, develop]
+
+pr:
+  branches:
+    include: [main]
+
+schedules:
+  - cron: "0 7 * * 1-5"
+    displayName: Nightly regression
+    branches:
+      include: [main]
+    always: true
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  MAVEN_CACHE_FOLDER: $(Pipeline.Workspace)/.m2/repository
+  MAVEN_OPTS: -Dmaven.repo.local=$(MAVEN_CACHE_FOLDER)
+  DB_URL: jdbc:postgresql://localhost:5432/pharmacy
+  DB_USER: pharmacy
+  DB_PASSWORD: pharmacy
+
+resources:
+  containers:
+    - container: postgres
+      image: postgres:16-alpine
+      ports:
+        - 5432:5432
+      env:
+        POSTGRES_DB: pharmacy
+        POSTGRES_USER: pharmacy
+        POSTGRES_PASSWORD: pharmacy
+
+stages:
+  - stage: Build
+    displayName: Build & unit test
+    jobs:
+      - job: BuildApp
+        steps:
+          - task: Cache@2
+            inputs:
+              key: 'maven | "$(Agent.OS)" | **/pom.xml'
+              path: $(MAVEN_CACHE_FOLDER)
+            displayName: Cache Maven repository
+
+          - task: Maven@4
+            displayName: Build pharmacy-app
+            inputs:
+              mavenPomFile: pharmacy-app/pom.xml
+              goals: verify
+              options: -B -ntp
+              javaHomeOption: JDKVersion
+              jdkVersionOption: "1.17"
+              publishJUnitResults: true
+              testResultsFiles: pharmacy-app/target/surefire-reports/TEST-*.xml
+
+          - task: Maven@4
+            displayName: Compile qa-automation
+            inputs:
+              mavenPomFile: qa-automation/pom.xml
+              goals: test-compile
+              options: -B -ntp
+              javaHomeOption: JDKVersion
+              jdkVersionOption: "1.17"
+              publishJUnitResults: false
+
+          - task: PublishPipelineArtifact@1
+            inputs:
+              targetPath: pharmacy-app/target/pharmacy-app.jar
+              artifact: app-jar
+
+  - stage: Test
+    displayName: Automated tests
+    dependsOn: Build
+    jobs:
+      - job: Automation
+        timeoutInMinutes: 30
+        strategy:
+          matrix:
+            API:
+              SUITE: api
+            Database:
+              SUITE: db
+            UI:
+              SUITE: ui
+        services:
+          postgres: postgres
+        steps:
+          - task: Cache@2
+            inputs:
+              key: 'maven | "$(Agent.OS)" | **/pom.xml'
+              path: $(MAVEN_CACHE_FOLDER)
+            displayName: Cache Maven repository
+
+          - task: DownloadPipelineArtifact@2
+            inputs:
+              artifact: app-jar
+              path: $(Pipeline.Workspace)/app
+
+          - bash: |
+              nohup java -jar $(Pipeline.Workspace)/app/pharmacy-app.jar > app.log 2>&1 &
+              for i in $(seq 1 60); do
+                if curl -fs http://localhost:8080/api/health; then echo; echo "App is up"; exit 0; fi
+                sleep 2
+              done
+              cat app.log; exit 1
+            displayName: Start the application
+            env:
+              JAVA_HOME: $(JAVA_HOME_17_X64)
+
+          - task: Maven@4
+            displayName: Run $(SUITE) suite
+            inputs:
+              mavenPomFile: qa-automation/pom.xml
+              goals: test
+              options: -B -ntp -Dsuite=$(SUITE) -Denv=ci
+              javaHomeOption: JDKVersion
+              jdkVersionOption: "1.17"
+              publishJUnitResults: true
+              testResultsFiles: qa-automation/target/surefire-reports/TEST-*.xml
+              testRunTitle: RxCare $(SUITE)
+
+          - task: PublishPipelineArtifact@1
+            condition: always()
+            inputs:
+              targetPath: qa-automation/target/allure-results
+              artifact: allure-results-$(SUITE)
+
+          - task: PublishPipelineArtifact@1
+            condition: failed()
+            inputs:
+              targetPath: qa-automation/target/screenshots
+              artifact: screenshots-$(SUITE)

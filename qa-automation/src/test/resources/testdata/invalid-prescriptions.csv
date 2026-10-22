@@ -1,0 +1,14 @@
+# Boundary / negative values for POST /api/prescriptions (TC-RX-010). Empty value = null.
+scenario,field,value
+quantity zero,quantity,0
+quantity negative,quantity,-5
+quantity missing,quantity,
+days supply below minimum,daysSupply,0
+days supply above maximum,daysSupply,91
+refills negative,refills,-1
+refills above maximum,refills,12
+NDC wrong format,ndc,ABCDE-123-1
+NDC missing,ndc,
+prescriber missing,prescriber,
+directions missing,sig,
+patient missing,patientId,

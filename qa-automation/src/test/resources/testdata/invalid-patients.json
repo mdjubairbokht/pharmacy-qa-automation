@@ -1,0 +1,11 @@
+[
+  { "case": "missing first name",        "field": "firstName",   "value": "" },
+  { "case": "digits in last name",       "field": "lastName",    "value": "Sm1th" },
+  { "case": "last name too long",        "field": "lastName",    "value": "AbcdefghijabcdefghijabcdefghijabcdefghijabcdefghijX" },
+  { "case": "date of birth in future",   "field": "dateOfBirth", "value": "2099-01-01" },
+  { "case": "date of birth missing",     "field": "dateOfBirth", "value": null },
+  { "case": "gender not in M/F/U",       "field": "gender",      "value": "X" },
+  { "case": "phone wrong format",        "field": "phone",       "value": "4125550100" },
+  { "case": "phone missing",             "field": "phone",       "value": "" },
+  { "case": "invalid email",             "field": "email",       "value": "not-an-email" }
+]

@@ -1,0 +1,22 @@
+server:
+  port: ${SERVER_PORT:8080}
+  error:
+    include-message: always
+
+spring:
+  application:
+    name: rxcare-pharmacy
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/pharmacy}
+    username: ${DB_USER:pharmacy}
+    password: ${DB_PASSWORD:pharmacy}
+  sql:
+    init:
+      # Recreate schema + seed data on every start: deterministic test baseline.
+      mode: always
+  jackson:
+    default-property-inclusion: always
+
+logging:
+  level:
+    com.rxcare: INFO

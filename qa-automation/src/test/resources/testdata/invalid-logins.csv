@@ -1,0 +1,9 @@
+# Data-driven negative sign-in cases for AuthApiTest (TC-AUTH-002)
+scenario,username,password,expectedStatus,expectedCode
+wrong password,rph.jones,WrongPass1!,401,INVALID_CREDENTIALS
+unknown user,no.such.user,Pharm@123,401,INVALID_CREDENTIALS
+password is case sensitive,rph.jones,pharm@123,401,INVALID_CREDENTIALS
+sql injection in username,' OR '1'='1,anything,401,INVALID_CREDENTIALS
+blank username,,Pharm@123,400,VALIDATION_ERROR
+blank password,rph.jones,,400,VALIDATION_ERROR
+disabled account,locked.user,Locked@123,403,ACCOUNT_DISABLED

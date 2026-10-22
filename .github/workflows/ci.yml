@@ -1,0 +1,234 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+  schedule:
+    - cron: "0 7 * * 1-5"          # nightly regression, weekdays 07:00 UTC
+  workflow_dispatch:
+    inputs:
+      suite:
+        description: TestNG suite to run
+        type: choice
+        options: [regression, smoke, api, db, ui]
+        default: regression
+      browser:
+        description: Browser for UI tests
+        type: choice
+        options: [chrome, firefox, edge]
+        default: chrome
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  checks: write
+
+env:
+  JAVA_VERSION: "17"
+  DB_URL: jdbc:postgresql://localhost:5432/pharmacy
+  DB_USER: pharmacy
+  DB_PASSWORD: pharmacy
+
+jobs:
+  build:
+    name: Build app + compile framework
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: maven
+
+      - name: Build and unit test the application
+        run: mvn -B -ntp -f pharmacy-app/pom.xml verify
+
+      - name: Compile the automation framework
+        run: mvn -B -ntp -f qa-automation/pom.xml test-compile
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: app-jar
+          path: pharmacy-app/target/pharmacy-app.jar
+          retention-days: 3
+
+  tests:
+    name: ${{ matrix.suite }} tests
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        # Push / PR / nightly: the three layers run as parallel jobs, each with its own database.
+        # Manual run: just the selected suite.
+        suite: ${{ github.event_name == 'workflow_dispatch' && fromJSON(format('["{0}"]', inputs.suite)) || fromJSON('["api","db","ui"]') }}
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: pharmacy
+          POSTGRES_USER: pharmacy
+          POSTGRES_PASSWORD: pharmacy
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U pharmacy -d pharmacy"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: maven
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: app-jar
+          path: pharmacy-app/target
+
+      - name: Start the application
+        run: |
+          nohup java -jar pharmacy-app/target/pharmacy-app.jar > app.log 2>&1 &
+          for i in $(seq 1 60); do
+            if curl -fs http://localhost:8080/api/health; then echo; echo "App is up"; exit 0; fi
+            sleep 2
+          done
+          echo "Application did not start"; cat app.log; exit 1
+
+      - name: Run ${{ matrix.suite }} suite
+        run: >
+          mvn -B -ntp -f qa-automation/pom.xml test
+          -Dsuite=${{ matrix.suite }}
+          -Denv=ci
+          -Dbrowser=${{ inputs.browser || 'chrome' }}
+
+      - name: Publish test results
+        if: always()
+        continue-on-error: true
+        uses: mikepenz/action-junit-report@v5
+        with:
+          report_paths: qa-automation/target/surefire-reports/TEST-*.xml
+          check_name: Test results (${{ matrix.suite }})
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: allure-results-${{ matrix.suite }}
+          path: qa-automation/target/allure-results
+          retention-days: 14
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: failure-evidence-${{ matrix.suite }}
+          path: |
+            qa-automation/target/screenshots
+            qa-automation/target/surefire-reports
+            app.log
+          retention-days: 14
+
+  postman:
+    name: Postman collection (Newman)
+    needs: build
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: pharmacy
+          POSTGRES_USER: pharmacy
+          POSTGRES_PASSWORD: pharmacy
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U pharmacy -d pharmacy"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/download-artifact@v4
+        with:
+          name: app-jar
+          path: pharmacy-app/target
+      - name: Start the application
+        run: |
+          nohup java -jar pharmacy-app/target/pharmacy-app.jar > app.log 2>&1 &
+          for i in $(seq 1 60); do curl -fs http://localhost:8080/api/health && exit 0; sleep 2; done
+          cat app.log; exit 1
+      - name: Run Newman
+        run: >
+          npx --yes newman@6 run postman/RxCare-API.postman_collection.json
+          -e postman/RxCare-local.postman_environment.json
+          --reporters cli,junit --reporter-junit-export newman/results.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: newman-results
+          path: newman/results.xml
+
+  report:
+    name: Allure report
+    needs: tests
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: maven
+
+      - name: Merge results from all suites
+        uses: actions/download-artifact@v4
+        with:
+          pattern: allure-results-*
+          merge-multiple: true
+          path: qa-automation/target/allure-results
+
+      - name: Generate Allure report
+        run: mvn -B -ntp -f qa-automation/pom.xml allure:report
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: allure-report
+          path: qa-automation/target/site/allure-maven-plugin
+          retention-days: 14
+
+      - uses: actions/upload-pages-artifact@v3
+        if: vars.PUBLISH_ALLURE == 'true' && github.ref == 'refs/heads/main'
+        with:
+          path: qa-automation/target/site/allure-maven-plugin
+
+  publish-report:
+    # Optional: set repository variable PUBLISH_ALLURE=true and enable Pages (Settings > Pages > Source: GitHub Actions)
+    name: Publish Allure report to GitHub Pages
+    needs: report
+    if: always() && vars.PUBLISH_ALLURE == 'true' && github.ref == 'refs/heads/main' && needs.report.result == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@v4

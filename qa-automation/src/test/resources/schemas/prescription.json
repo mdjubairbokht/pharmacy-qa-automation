@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Prescription",
+  "type": "object",
+  "required": ["id", "rxNumber", "patientId", "patientName", "ndc", "drugName", "quantity", "daysSupply",
+               "refills", "refillsRemaining", "status", "fillCount", "createdBy", "createdAt"],
+  "properties": {
+    "id": { "type": "integer", "minimum": 1 },
+    "rxNumber": { "type": "string", "pattern": "^RX\\d{7}$" },
+    "patientId": { "type": "integer" },
+    "patientName": { "type": "string" },
+    "ndc": { "type": "string", "pattern": "^\\d{5}-\\d{4}-\\d{2}$" },
+    "drugName": { "type": "string" },
+    "quantity": { "type": "integer", "minimum": 1 },
+    "daysSupply": { "type": "integer", "minimum": 1, "maximum": 90 },
+    "refills": { "type": "integer", "minimum": 0, "maximum": 11 },
+    "refillsRemaining": { "type": "integer", "minimum": 0 },
+    "status": { "type": "string", "enum": ["NEW", "VERIFIED", "FILLED", "PICKED_UP", "CANCELLED"] },
+    "fillCount": { "type": "integer", "minimum": 0 },
+    "createdBy": { "type": "string" },
+    "createdAt": { "type": "string" },
+    "verifiedBy": { "type": ["string", "null"] },
+    "filledBy": { "type": ["string", "null"] },
+    "cancelReason": { "type": ["string", "null"] }
+  }
+}

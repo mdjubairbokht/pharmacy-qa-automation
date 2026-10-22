@@ -1,0 +1,43 @@
+# Local / Jenkins test environment.
+#   docker compose up -d db                 -> PostgreSQL only (run the app with Maven)
+#   docker compose up -d --build            -> PostgreSQL + app on http://localhost:8080
+#   docker compose --profile grid up -d     -> + Selenium standalone Chrome on :4444 (VNC viewer on :7900)
+name: rxcare
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: pharmacy
+      POSTGRES_USER: pharmacy
+      POSTGRES_PASSWORD: pharmacy
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pharmacy -d pharmacy"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  app:
+    build: ./pharmacy-app
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/pharmacy
+      DB_USER: pharmacy
+      DB_PASSWORD: pharmacy
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  selenium:
+    image: selenium/standalone-chrome:latest
+    profiles: ["grid"]
+    shm_size: 2gb
+    environment:
+      SE_NODE_MAX_SESSIONS: 2
+      SE_NODE_OVERRIDE_MAX_SESSIONS: "true"
+    ports:
+      - "4444:4444"
+      - "7900:7900"

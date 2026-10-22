@@ -1,0 +1,27 @@
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<!-- Full regression: API, database and UI layers in sequence, each layer parallelised internally. -->
+<suite name="RxCare Regression" verbose="1">
+    <listeners>
+        <listener class-name="com.rxcare.qa.listeners.SuiteListener"/>
+        <listener class-name="com.rxcare.qa.listeners.TestListener"/>
+        <listener class-name="com.rxcare.qa.listeners.RetryTransformer"/>
+    </listeners>
+
+    <test name="API - REST Assured" parallel="classes" thread-count="4">
+        <packages>
+            <package name="com.rxcare.qa.tests.api"/>
+        </packages>
+    </test>
+
+    <test name="Database - SQL validation, constraints and ETL">
+        <packages>
+            <package name="com.rxcare.qa.tests.db"/>
+        </packages>
+    </test>
+
+    <test name="UI - Selenium WebDriver" parallel="classes" thread-count="2">
+        <packages>
+            <package name="com.rxcare.qa.tests.ui"/>
+        </packages>
+    </test>
+</suite>

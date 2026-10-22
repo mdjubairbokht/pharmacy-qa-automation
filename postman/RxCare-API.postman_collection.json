@@ -1,0 +1,211 @@
+{
+  "info": {
+    "name": "RxCare Pharmacy API",
+    "description": "Exploratory + regression collection for the RxCare demo API. Run in order: it logs in, registers a patient and walks a prescription through its lifecycle. CI runs it with Newman.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+  },
+  "item": [
+    {
+      "name": "01 Health check",
+      "request": {
+        "auth": { "type": "noauth" },
+        "method": "GET",
+        "url": "{{baseUrl}}/api/health"
+      },
+      "event": [{
+        "listen": "test",
+        "script": { "type": "text/javascript", "exec": [
+          "pm.test('status 200', () => pm.response.to.have.status(200));",
+          "pm.test('application and database UP', () => {",
+          "  const body = pm.response.json();",
+          "  pm.expect(body.status).to.eql('UP');",
+          "  pm.expect(body.database).to.eql('UP');",
+          "});"
+        ]}
+      }]
+    },
+    {
+      "name": "02 Login - invalid password is rejected",
+      "request": {
+        "auth": { "type": "noauth" },
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/api/auth/login",
+        "body": { "mode": "raw", "raw": "{\"username\": \"{{pharmacistUser}}\", \"password\": \"wrong\"}" }
+      },
+      "event": [{
+        "listen": "test",
+        "script": { "type": "text/javascript", "exec": [
+          "pm.test('status 401', () => pm.response.to.have.status(401));",
+          "pm.test('error code', () => pm.expect(pm.response.json().code).to.eql('INVALID_CREDENTIALS'));"
+        ]}
+      }]
+    },
+    {
+      "name": "03 Login as pharmacist",
+      "request": {
+        "auth": { "type": "noauth" },
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/api/auth/login",
+        "body": { "mode": "raw", "raw": "{\"username\": \"{{pharmacistUser}}\", \"password\": \"{{pharmacistPassword}}\"}" }
+      },
+      "event": [{
+        "listen": "test",
+        "script": { "type": "text/javascript", "exec": [
+          "pm.test('status 200', () => pm.response.to.have.status(200));",
+          "const body = pm.response.json();",
+          "pm.test('pharmacist role', () => pm.expect(body.role).to.eql('PHARMACIST'));",
+          "pm.collectionVariables.set('token', body.token);"
+        ]}
+      }]
+    },
+    {
+      "name": "04 Protected endpoint without token",
+      "request": {
+        "auth": { "type": "noauth" },
+        "method": "GET",
+        "url": "{{baseUrl}}/api/patients"
+      },
+      "event": [{
+        "listen": "test",
+        "script": { "type": "text/javascript", "exec": [
+          "pm.test('status 401', () => pm.response.to.have.status(401));"
+        ]}
+      }]
+    },
+    {
+      "name": "05 Register patient",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/api/patients",
+        "body": { "mode": "raw", "raw": "{\n  \"firstName\": \"Postman\",\n  \"lastName\": \"{{lastName}}\",\n  \"dateOfBirth\": \"1984-03-14\",\n  \"gender\": \"F\",\n  \"phone\": \"412-555-0142\",\n  \"email\": \"postman@example.com\",\n  \"insurancePlan\": \"BLUE-PPO\",\n  \"allergies\": [\"sulfonamide\"]\n}" }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": { "type": "text/javascript", "exec": [
+            "const letters = 'abcdefghijklmnopqrstuvwxyz';",
+            "let suffix = '';",
+            "for (let i = 0; i < 8; i++) suffix += letters[Math.floor(Math.random() * letters.length)];",
+            "pm.collectionVariables.set('lastName', 'Pm' + suffix);"
+          ]}
+        },
+        {
+          "listen": "test",
+          "script": { "type": "text/javascript", "exec": [
+            "pm.test('status 201', () => pm.response.to.have.status(201));",
+            "const body = pm.response.json();",
+            "pm.test('allergy normalised to upper case', () => pm.expect(body.allergies).to.eql(['SULFONAMIDE']));",
+            "pm.collectionVariables.set('patientId', body.id);"
+          ]}
+        }
+      ]
+    },
+    {
+      "name": "06 Get patient",
+      "request": { "method": "GET", "url": "{{baseUrl}}/api/patients/{{patientId}}" },
+      "event": [{
+        "listen": "test",
+        "script": { "type": "text/javascript", "exec": [
+          "pm.test('status 200', () => pm.response.to.have.status(200));",
+          "pm.test('same patient', () => pm.expect(pm.response.json().lastName).to.eql(pm.collectionVariables.get('lastName')));"
+        ]}
+      }]
+    },
+    {
+      "name": "07 Allergy conflict is blocked (DUR)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/api/prescriptions",
+        "body": { "mode": "raw", "raw": "{\"patientId\": {{patientId}}, \"ndc\": \"50000-0606-01\", \"prescriber\": \"Dr. Postman\", \"sig\": \"Take 1 tablet twice daily\", \"quantity\": 20, \"daysSupply\": 10, \"refills\": 0}" }
+      },
+      "event": [{
+        "listen": "test",
+        "script": { "type": "text/javascript", "exec": [
+          "pm.test('status 422', () => pm.response.to.have.status(422));",
+          "pm.test('ALLERGY_CONFLICT', () => pm.expect(pm.response.json().code).to.eql('ALLERGY_CONFLICT'));"
+        ]}
+      }]
+    },
+    {
+      "name": "08 Create prescription",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/api/prescriptions",
+        "body": { "mode": "raw", "raw": "{\"patientId\": {{patientId}}, \"ndc\": \"50000-0202-01\", \"prescriber\": \"Dr. Postman\", \"sig\": \"Take 1 tablet by mouth once daily\", \"quantity\": 30, \"daysSupply\": 30, \"refills\": 2}" }
+      },
+      "event": [{
+        "listen": "test",
+        "script": { "type": "text/javascript", "exec": [
+          "pm.test('status 201', () => pm.response.to.have.status(201));",
+          "const body = pm.response.json();",
+          "pm.test('status NEW', () => pm.expect(body.status).to.eql('NEW'));",
+          "pm.test('rx number format', () => pm.expect(body.rxNumber).to.match(/^RX\\d{7}$/));",
+          "pm.collectionVariables.set('rxId', body.id);"
+        ]}
+      }]
+    },
+    {
+      "name": "09 Verify prescription",
+      "request": { "method": "POST", "url": "{{baseUrl}}/api/prescriptions/{{rxId}}/verify" },
+      "event": [{
+        "listen": "test",
+        "script": { "type": "text/javascript", "exec": [
+          "pm.test('VERIFIED', () => pm.expect(pm.response.json().status).to.eql('VERIFIED'));"
+        ]}
+      }]
+    },
+    {
+      "name": "10 Fill prescription",
+      "request": { "method": "POST", "url": "{{baseUrl}}/api/prescriptions/{{rxId}}/fill" },
+      "event": [{
+        "listen": "test",
+        "script": { "type": "text/javascript", "exec": [
+          "pm.test('FILLED', () => pm.expect(pm.response.json().status).to.eql('FILLED'));",
+          "pm.test('fill count 1', () => pm.expect(pm.response.json().fillCount).to.eql(1));"
+        ]}
+      }]
+    },
+    {
+      "name": "11 Pick up prescription",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/api/prescriptions/{{rxId}}/pickup",
+        "body": { "mode": "raw", "raw": "{\"paymentMethod\": \"CASH\"}" }
+      },
+      "event": [{
+        "listen": "test",
+        "script": { "type": "text/javascript", "exec": [
+          "pm.test('PICKED_UP', () => pm.expect(pm.response.json().status).to.eql('PICKED_UP'));"
+        ]}
+      }]
+    },
+    {
+      "name": "12 Sale recorded",
+      "request": { "method": "GET", "url": "{{baseUrl}}/api/prescriptions/{{rxId}}/transactions" },
+      "event": [{
+        "listen": "test",
+        "script": { "type": "text/javascript", "exec": [
+          "const sales = pm.response.json();",
+          "pm.test('one sale', () => pm.expect(sales.length).to.eql(1));",
+          "pm.test('amount = 30 x 0.15', () => pm.expect(Number(sales[0].amount)).to.eql(4.5));"
+        ]}
+      }]
+    }
+  ],
+  "variable": [
+    { "key": "token", "value": "" },
+    { "key": "lastName", "value": "" },
+    { "key": "patientId", "value": "" },
+    { "key": "rxId", "value": "" }
+  ]
+}

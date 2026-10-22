@@ -1,0 +1,21 @@
+# Build output
+target/
+*.class
+
+# Reports
+allure-results/
+allure-report/
+newman/
+test-output/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+
+# OS / logs
+.DS_Store
+*.log

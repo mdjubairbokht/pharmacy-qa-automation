@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RxCare Pharmacy - Sign in</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div class="login-wrap">
+  <form class="login-card" id="login-form" data-testid="login-form" novalidate>
+    <div class="brand">
+      <div class="brand-mark">Rx</div>
+      <div>
+        <div class="brand-name">RxCare Pharmacy</div>
+        <div class="brand-sub">Pharmacy management workstation</div>
+      </div>
+    </div>
+    <h1 style="font-size:18px">Sign in</h1>
+
+    <div class="alert alert-error hidden" data-testid="login-error" role="alert"></div>
+
+    <div class="field">
+      <label for="username">Username</label>
+      <input id="username" name="username" data-testid="username" autocomplete="username" autofocus>
+    </div>
+    <div class="field">
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password" data-testid="password" autocomplete="current-password">
+    </div>
+    <button type="submit" class="btn btn-primary" data-testid="login-button">Sign in</button>
+
+    <div class="demo-creds">
+      Demo accounts: <code>rph.jones / Pharm@123</code> (pharmacist),
+      <code>tech.smith / Tech@123</code> (technician)
+    </div>
+  </form>
+</div>
+<script src="js/login.js"></script>
+</body>
+</html>

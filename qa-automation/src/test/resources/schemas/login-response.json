@@ -1,0 +1,13 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Login response",
+  "type": "object",
+  "required": ["token", "username", "displayName", "role"],
+  "properties": {
+    "token": { "type": "string", "minLength": 32 },
+    "username": { "type": "string" },
+    "displayName": { "type": "string" },
+    "role": { "type": "string", "enum": ["PHARMACIST", "TECHNICIAN"] }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,14 @@
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="RxCare API" verbose="1">
+    <listeners>
+        <listener class-name="com.rxcare.qa.listeners.SuiteListener"/>
+        <listener class-name="com.rxcare.qa.listeners.TestListener"/>
+    </listeners>
+
+    <!-- Test classes are independent (own data, reserved NDCs), so they run 4 at a time. -->
+    <test name="API - REST Assured" parallel="classes" thread-count="4">
+        <packages>
+            <package name="com.rxcare.qa.tests.api"/>
+        </packages>
+    </test>
+</suite>
