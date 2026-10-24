@@ -1,6 +1,51 @@
 # RxCare Pharmacy — QA Automation Framework
 
-[![CI](https://github.com/OWNER/pharmacy-qa-automation/actions/workflows/ci.yml/badge.svg)](https://github.com/OWNER/pharmacy-qa-automation/actions/workflows/ci.yml)
+[![CI](https://github.com/mdjubairbokht/pharmacy-qa-automation/actions/workflows/ci.yml/badge.svg)](https://github.com/mdjubairbokht/pharmacy-qa-automation/actions/workflows/ci.yml)
+![Java](https://img.shields.io/badge/Java-17-ED8B00?logo=openjdk&logoColor=white)
+![Selenium](https://img.shields.io/badge/Selenium-4-43B02A?logo=selenium&logoColor=white)
+![TestNG](https://img.shields.io/badge/TestNG-7-FF7F00)
+![REST Assured](https://img.shields.io/badge/REST%20Assured-5-2E7D32)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)
+![Allure](https://img.shields.io/badge/Report-Allure-FF6B6B)
+![License](https://img.shields.io/badge/License-MIT-blue)
+
+> **At a glance:** 108 automated test executions across UI, API and database layers · all passing in CI · full pipeline (build → parallel API / DB / UI suites → Postman → Allure report) in about **2 minutes** on every push.
+
+| | |
+|---|---|
+| **UI automation** | Selenium WebDriver 4, TestNG, Page Object Model, parallel execution, cross-browser (Chrome / Firefox / Edge / Grid) |
+| **API automation** | REST Assured, JSON Schema validation, data-driven negative & boundary tests, Postman/Newman |
+| **Database testing** | SQL integrity checks, schema-constraint tests, ETL source-to-target reconciliation |
+| **CI/CD** | GitHub Actions (parallel matrix), Jenkins pipeline, Azure DevOps pipeline, Docker Compose |
+| **QA process** | Test strategy, 59 test cases, requirements traceability, defect reporting, exploratory charters |
+
+### Results
+
+| Layer | Test executions | Result |
+|---|---|---|
+| API (REST Assured) | 59 | ✅ all passing |
+| Database (SQL / JDBC / ETL) | 29 | ✅ all passing |
+| UI (Selenium + TestNG) | 20 | ✅ all passing |
+
+### Screenshots
+
+**Prescription work queue:** the app under test, driven by the Selenium suite
+![Prescription work queue](docs/images/prescriptions.png)
+
+<table>
+<tr>
+<td width="50%"><b>Patient-safety rule:</b> allergy screening blocks an opioid for an allergic patient (covered by UI, API and DB tests)<br><img src="docs/images/allergy-check.png" alt="Allergy check"></td>
+<td width="50%"><b>Point of sale:</b> amount due verified against quantity × unit price in the database<br><img src="docs/images/pickup.png" alt="Pickup dialog"></td>
+</tr>
+<tr>
+<td width="50%"><b>Inventory:</b> low-stock flags and receiving, reconciled against the inventory ledger<br><img src="docs/images/inventory.png" alt="Inventory"></td>
+<td width="50%"><b>Sign-in:</b> role-based access (pharmacist vs technician)<br><img src="docs/images/login.png" alt="Sign in"></td>
+</tr>
+</table>
+
+---
+
+## About
 
 End-to-end quality engineering project for a **retail pharmacy management system**: a Java test automation framework covering **UI (Selenium WebDriver + TestNG + Page Object Model)**, **REST API (REST Assured)** and **database (SQL / JDBC, including ETL validation)**, wired into **GitHub Actions, Jenkins and Azure DevOps**, with the manual QA artefacts that go with it (test strategy, test cases, traceability, defect reporting, exploratory charters).
 
