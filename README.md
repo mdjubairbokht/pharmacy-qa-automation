@@ -1,4 +1,4 @@
-# RxCare Pharmacy — QA Automation Framework
+# RxCare Pharmacy — Software QA Automation Framework
 
 [![CI](https://github.com/mdjubairbokht/pharmacy-qa-automation/actions/workflows/ci.yml/badge.svg)](https://github.com/mdjubairbokht/pharmacy-qa-automation/actions/workflows/ci.yml)
 ![Java](https://img.shields.io/badge/Java-17-ED8B00?logo=openjdk&logoColor=white)
