@@ -1,0 +1,13 @@
+{
+  "recommendations": [
+    "vscjava.vscode-java-pack",
+    "ms-azuretools.vscode-docker",
+    "github.vscode-pull-request-github",
+    "github.vscode-github-actions",
+    "mtxr.sqltools",
+    "mtxr.sqltools-driver-pg",
+    "humao.rest-client",
+    "redhat.vscode-yaml",
+    "eamodio.gitlens"
+  ]
+}

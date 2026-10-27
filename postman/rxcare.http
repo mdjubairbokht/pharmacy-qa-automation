@@ -1,0 +1,49 @@
+### RxCare API - run requests from VS Code with the "REST Client" extension.
+### Click "Send Request" above each request. Start the app first (Tasks: App: start).
+
+@baseUrl = http://localhost:8080
+
+### Health check (no login needed)
+GET {{baseUrl}}/api/health
+
+### Sign in as pharmacist - the token is reused by the requests below
+# @name login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{ "username": "rph.jones", "password": "Pharm@123" }
+
+###
+@token = {{login.response.body.token}}
+
+### Dashboard summary
+GET {{baseUrl}}/api/dashboard
+Authorization: Bearer {{token}}
+
+### All patients
+GET {{baseUrl}}/api/patients
+Authorization: Bearer {{token}}
+
+### Low-stock drugs
+GET {{baseUrl}}/api/inventory/low-stock
+Authorization: Bearer {{token}}
+
+### Prescriptions waiting for verification
+GET {{baseUrl}}/api/prescriptions?status=NEW
+Authorization: Bearer {{token}}
+
+### Allergy check: John Carter (patient 1) is allergic to PENICILLIN -> expect 422 ALLERGY_CONFLICT
+POST {{baseUrl}}/api/prescriptions
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "patientId": 1, "ndc": "50000-0101-01", "prescriber": "Dr. Demo", "sig": "Take 1 capsule three times daily",
+  "quantity": 30, "daysSupply": 10, "refills": 0 }
+
+### Create a valid prescription (Lisinopril for patient 3) -> expect 201
+POST {{baseUrl}}/api/prescriptions
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "patientId": 3, "ndc": "50000-0202-01", "prescriber": "Dr. Demo", "sig": "Take 1 tablet once daily",
+  "quantity": 30, "daysSupply": 30, "refills": 2 }

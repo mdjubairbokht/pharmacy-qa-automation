@@ -1,0 +1,28 @@
+{
+  "java.configuration.updateBuildConfiguration": "automatic",
+  "java.compile.nullAnalysis.mode": "disabled",
+  "maven.view": "hierarchical",
+  "files.exclude": {
+    "**/target": true
+  },
+  "files.eol": "\n",
+  "git.autofetch": true,
+  "git.confirmSync": false,
+  "sqltools.connections": [
+    {
+      "name": "RxCare PostgreSQL (local)",
+      "driver": "PostgreSQL",
+      "server": "localhost",
+      "port": 5432,
+      "database": "pharmacy",
+      "username": "pharmacy",
+      "password": "pharmacy",
+      "previewLimit": 50
+    }
+  ],
+  "rest-client.environmentVariables": {
+    "local": {
+      "baseUrl": "http://localhost:8080"
+    }
+  }
+}

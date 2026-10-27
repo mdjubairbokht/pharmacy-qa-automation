@@ -11,7 +11,10 @@ test-output/
 # IDE
 .idea/
 *.iml
-.vscode/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/tasks.json
 .classpath
 .project
 .settings/

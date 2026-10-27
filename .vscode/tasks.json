@@ -1,0 +1,179 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "App: start (Docker)",
+      "type": "shell",
+      "command": "docker",
+      "args": [
+        "compose",
+        "up",
+        "-d",
+        "--build"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "App: stop",
+      "type": "shell",
+      "command": "docker",
+      "args": [
+        "compose",
+        "down"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "App: reset test data",
+      "type": "shell",
+      "command": "docker",
+      "args": [
+        "compose",
+        "restart",
+        "app"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "App: show logs",
+      "type": "shell",
+      "command": "docker",
+      "args": [
+        "compose",
+        "logs",
+        "-f",
+        "app"
+      ],
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "App: open in browser",
+      "type": "shell",
+      "command": "start",
+      "args": [
+        "http://localhost:8080"
+      ],
+      "osx": {
+        "command": "open"
+      },
+      "linux": {
+        "command": "xdg-open"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Tests: smoke",
+      "type": "shell",
+      "command": "mvn",
+      "args": [
+        "-f",
+        "qa-automation/pom.xml",
+        "test",
+        "-Dsuite=smoke"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "panel": "dedicated",
+        "clear": true
+      },
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "Tests: API",
+      "type": "shell",
+      "command": "mvn",
+      "args": [
+        "-f",
+        "qa-automation/pom.xml",
+        "test",
+        "-Dsuite=api"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "panel": "dedicated",
+        "clear": true
+      }
+    },
+    {
+      "label": "Tests: database",
+      "type": "shell",
+      "command": "mvn",
+      "args": [
+        "-f",
+        "qa-automation/pom.xml",
+        "test",
+        "-Dsuite=db"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "panel": "dedicated",
+        "clear": true
+      }
+    },
+    {
+      "label": "Tests: UI",
+      "type": "shell",
+      "command": "mvn",
+      "args": [
+        "-f",
+        "qa-automation/pom.xml",
+        "test",
+        "-Dsuite=ui"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "panel": "dedicated",
+        "clear": true
+      }
+    },
+    {
+      "label": "Tests: UI (headless)",
+      "type": "shell",
+      "command": "mvn",
+      "args": [
+        "-f",
+        "qa-automation/pom.xml",
+        "test",
+        "-Dsuite=ui",
+        "-Dheadless=true"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "panel": "dedicated",
+        "clear": true
+      }
+    },
+    {
+      "label": "Tests: full regression",
+      "type": "shell",
+      "command": "mvn",
+      "args": [
+        "-f",
+        "qa-automation/pom.xml",
+        "test",
+        "-Dsuite=regression"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "panel": "dedicated",
+        "clear": true
+      }
+    },
+    {
+      "label": "Report: open Allure",
+      "type": "shell",
+      "command": "mvn",
+      "args": [
+        "-f",
+        "qa-automation/pom.xml",
+        "allure:serve"
+      ],
+      "isBackground": true,
+      "problemMatcher": []
+    }
+  ]
+}
