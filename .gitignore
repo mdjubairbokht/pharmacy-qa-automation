@@ -5,6 +5,7 @@ target/
 # Reports
 allure-results/
 allure-report/
+.allure/
 newman/
 test-output/
 
