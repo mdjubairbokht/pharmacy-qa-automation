@@ -1,12 +1,12 @@
-// Declarative pipeline for a Jenkins agent with Docker, JDK 17 and Maven 3.9.
+// Declarative pipeline for a Jenkins agent with Docker, JDK 25 and Maven 3.9.
 // Required plugins: Pipeline, Docker Pipeline (or docker CLI on the agent), JUnit, Allure Jenkins Plugin.
-// Global tools expected (Manage Jenkins > Tools): JDK named "jdk17", Maven named "maven3",
+// Global tools expected (Manage Jenkins > Tools): JDK named "jdk25", Maven named "maven3",
 // Allure Commandline named "allure".
 pipeline {
     agent any
 
     tools {
-        jdk 'jdk17'
+        jdk 'jdk25'
         maven 'maven3'
     }
 

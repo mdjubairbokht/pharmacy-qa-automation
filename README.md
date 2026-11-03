@@ -1,7 +1,7 @@
 # RxCare Pharmacy — Software QA Automation Framework
 
 [![CI](https://github.com/mdjubairbokht/pharmacy-qa-automation/actions/workflows/ci.yml/badge.svg)](https://github.com/mdjubairbokht/pharmacy-qa-automation/actions/workflows/ci.yml)
-![Java](https://img.shields.io/badge/Java-17-ED8B00?logo=openjdk&logoColor=white)
+![Java](https://img.shields.io/badge/Java-25-ED8B00?logo=openjdk&logoColor=white)
 ![Selenium](https://img.shields.io/badge/Selenium-4-43B02A?logo=selenium&logoColor=white)
 ![TestNG](https://img.shields.io/badge/TestNG-7-FF7F00)
 ![REST Assured](https://img.shields.io/badge/REST%20Assured-5-2E7D32)
@@ -59,7 +59,7 @@ The repository includes its own system under test, **RxCare Pharmacy**: a Spring
 
 ```mermaid
 flowchart LR
-    subgraph QA["qa-automation (Java 17 · TestNG)"]
+    subgraph QA["qa-automation (Java 25 · TestNG)"]
         UI["UI tests<br/>Selenium WebDriver + POM"]
         API["API tests<br/>REST Assured + JSON Schema"]
         DB["DB tests<br/>JDBC + SQL · ETL checks"]
@@ -96,7 +96,7 @@ flowchart LR
 
 ## Tech stack
 
-Java 17 · Maven · Selenium 4 · TestNG 7 · REST Assured 5 · JSON Schema Validator · PostgreSQL 16 · JDBC · Allure 2 · SLF4J · Spring Boot 3.5 (SUT) · Docker Compose · Postman/Newman · GitHub Actions · Jenkins · Azure DevOps
+Java 25 · Maven · Selenium 4 · TestNG 7 · REST Assured 5 · JSON Schema Validator · PostgreSQL 16 · JDBC · Allure 2 · SLF4J · Spring Boot 3.5 (SUT) · Docker Compose · Postman/Newman · GitHub Actions · Jenkins · Azure DevOps
 
 ## Project structure
 
@@ -128,7 +128,7 @@ pharmacy-qa-automation/
 
 ## Run locally
 
-**Prerequisites:** JDK 17+, Maven 3.9+, Docker, Google Chrome.
+**Prerequisites:** JDK 25+, Maven 3.9+, Docker, Google Chrome.
 
 ```bash
 # 1. Start PostgreSQL + the app (http://localhost:8080)
