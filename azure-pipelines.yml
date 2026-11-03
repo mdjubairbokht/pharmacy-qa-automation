@@ -133,8 +133,10 @@ stages:
               targetPath: qa-automation/target/allure-results
               artifact: allure-results-$(SUITE)
 
-          - task: PublishPipelineArtifact@1
-            condition: failed()
+
+            - task: PublishPipelineArtifact@1
+            displayName: Publish UI failure screenshots
+            condition: and(failed(), eq(variables['SUITE'], 'ui'))
             inputs:
               targetPath: qa-automation/target/screenshots
               artifact: screenshots-$(SUITE)
