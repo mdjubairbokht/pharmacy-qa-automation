@@ -153,6 +153,7 @@
         ]}
       }]
     },
+    
     {
       "name": "09 Verify prescription",
       "request": { "method": "POST", "url": "{{baseUrl}}/api/prescriptions/{{rxId}}/verify" },
