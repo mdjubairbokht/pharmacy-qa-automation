@@ -1,13 +1,19 @@
 {
   "recommendations": [
     "vscjava.vscode-java-pack",
+    "vmware.vscode-spring-boot",
+    "sonarsource.sonarlint-vscode",
+    "usernamehw.errorlens",
     "ms-azuretools.vscode-docker",
     "github.vscode-pull-request-github",
     "github.vscode-github-actions",
+    "eamodio.gitlens",
     "mtxr.sqltools",
     "mtxr.sqltools-driver-pg",
     "humao.rest-client",
+    "postman.postman-for-vscode",
     "redhat.vscode-yaml",
-    "eamodio.gitlens"
+    "streetsidesoftware.code-spell-checker"
   ]
 }
+
