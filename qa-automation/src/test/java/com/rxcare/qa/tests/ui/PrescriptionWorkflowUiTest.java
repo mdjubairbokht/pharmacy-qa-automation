@@ -148,5 +148,33 @@ public class PrescriptionWorkflowUiTest extends BaseUiTest {
 
         assertTrue(queue.hasRow(rx.rxNumber()), "filled prescription listed");
         assertTrue(queue.statusesShown().stream().allMatch("FILLED"::equals), "only FILLED: " + queue.statusesShown());
+
     }
+
+    
+    @Test(groups = {"ui", "regression"}, description = "Refilling a picked-up prescription re-queues it as NEW with one refill fewer")
+    @Story("RX-110 Refills")
+    @Severity(SeverityLevel.CRITICAL)
+    @TmsLink("TC-UI-RX-007")
+    public void refillThroughUi() {
+        Prescription rx = PrescriptionWorkflow.pickedUp(api(), SeedData.NDC_LISINOPRIL, 30, "CASH");
+
+        PrescriptionsPage queue = loginAsTechnician().goToPrescriptions()
+                .filterByStatus("PICKED_UP")
+                .refill(rx.rxNumber());
+
+        assertFalse(queue.hasRow(rx.rxNumber()), "refilled prescription leaves the PICKED_UP list");
+        queue.filterByStatus("NEW");
+        assertEquals(queue.statusOf(rx.rxNumber()), "NEW", "back in the NEW queue");
+        assertEquals(queue.cell(rx.rxNumber(), "refills"), "1", "one refill used, one left");
+
+        Map<String, Object> row = DbClient.queryOne(PharmacyQueries.PRESCRIPTION_BY_ID, rx.id());
+        assertEquals(((Number) row.get("refills_remaining")).intValue(), 1, "refills remaining in the database");
+        assertTrue(row.get("verified_by") == null, "a refill must be verified again by a pharmacist");
+    
+
+    }
+
 }
+
+
